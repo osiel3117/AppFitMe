@@ -426,7 +426,6 @@ app.get('/api/routine/:id/exercises', async (req, res) => {
 });
   
 
-
 app.get('/api/routines/details', async (req, res) => {
     const { name } = req.query;
 
