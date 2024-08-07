@@ -533,14 +533,6 @@ app.post('/api/community', async (req, res) => {
     }
 });
 
-io.on('connection', (socket) => {
-    console.log('New client connected');
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
-});
-
 app.post('/api/delete-post', async (req, res) => {
     const { postId, userId } = req.body;
 
