@@ -5,10 +5,14 @@ const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const http = require('http');
+const socketIo = require('socket.io');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/www/uploads/' });
 const port = 5000;
+const server = http.createServer(app);
+const io = socketIo(server);
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -16,7 +20,7 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('www'));
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/www/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 mongoose.connect('mongodb+srv://osiel:Lilbean31_@cluster0.5rxflnj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
@@ -426,6 +430,7 @@ app.get('/api/routine/:id/exercises', async (req, res) => {
 });
   
 
+
 app.get('/api/routines/details', async (req, res) => {
     const { name } = req.query;
 
@@ -516,6 +521,7 @@ app.get('/api/community', async (req, res) => {
 });
 
 
+// Endpoint para crear un nuevo post
 app.post('/api/community', async (req, res) => {
     const { userId, content } = req.body;
 
@@ -525,11 +531,22 @@ app.post('/api/community', async (req, res) => {
 
         const populatedPost = await Post.findById(newPost._id).populate('userId', 'username');
 
+        // Emitir el evento new-post a todos los clientes conectados
+        io.emit('new-post', populatedPost);
+
         res.json({ success: true, post: populatedPost });
     } catch (error) {
         console.error('Error creating post:', error);
         res.status(500).json({ error: 'Failed to create post' });
     }
+});
+
+io.on('connection', (socket) => {
+    console.log('New client connected');
+
+    socket.on('disconnect', () => {
+        console.log('Client disconnected');
+    });
 });
 
 app.post('/api/delete-post', async (req, res) => {
