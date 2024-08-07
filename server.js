@@ -5,14 +5,10 @@ const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
 const multer = require('multer');
-const http = require('http');
-const socketIo = require('socket.io');
 
 const app = express();
 const upload = multer({ dest: '/www/uploads/' });
 const port = 5000;
-const server = http.createServer(app);
-const io = socketIo(server);
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -521,7 +517,6 @@ app.get('/api/community', async (req, res) => {
 });
 
 
-// Endpoint para crear un nuevo post
 app.post('/api/community', async (req, res) => {
     const { userId, content } = req.body;
 
@@ -530,9 +525,6 @@ app.post('/api/community', async (req, res) => {
         await newPost.save();
 
         const populatedPost = await Post.findById(newPost._id).populate('userId', 'username');
-
-        // Emitir el evento new-post a todos los clientes conectados
-        io.emit('new-post', populatedPost);
 
         res.json({ success: true, post: populatedPost });
     } catch (error) {
